@@ -207,10 +207,10 @@ var BOX_CLASSNAME = 'simulated-ripple-box';
 var ISPC = (0, _isPC2.default)();
 
 var TouchRipple = function () {
-  function TouchRipple(el, hideSelf) {
+  function TouchRipple(el, options) {
     _classCallCheck(this, TouchRipple);
 
-    this.initData(el, hideSelf) && this.init();
+    this.initData(el, options) && this.init();
   }
 
   /**
@@ -220,12 +220,34 @@ var TouchRipple = function () {
 
   _createClass(TouchRipple, [{
     key: 'initData',
-    value: function initData(el, hideSelf) {
+    value: function initData(el, options) {
       this.el = (0, _check.checkNode)(el);
       if (!this.el) return;
       this.filterId = 'filter-ripple-' + (new Date() - 0);
-      this.hideSelf = hideSelf;
+      options = this.checkOptions(options);
+      this.options = options;
       return true;
+    }
+
+    /**
+     * 检查并且初始化options
+     */
+
+  }, {
+    key: 'checkOptions',
+    value: function checkOptions(options) {
+      if (typeof options === 'number') {
+        options = { time: options };
+      }
+      options = options || {};
+      var baseOptions = {
+        time: 1200,
+        hideSelf: false
+      };
+      for (var option in baseOptions) {
+        !options[option] && (options[option] = baseOptions[option]);
+      }
+      return options;
     }
   }, {
     key: 'init',
@@ -271,11 +293,10 @@ var TouchRipple = function () {
       var turb = document.querySelector('#' + this.filterId + ' feImage');
       var feDisplacementMap = document.querySelector('#' + this.filterId + ' feDisplacementMap');
       var feComposite = document.querySelector('#' + this.filterId + ' .SourceGraphic');
-      var hideSelf = this.hideSelf;
+      var hideSelf = this.options.hideSelf;
       if (hideSelf) {
         feComposite.setAttribute('in2', '');
       }
-      // console.log(feComposite.attributes.scale.value)
       if (!turb) return;
       var width = this.el.offsetWidth;
       var height = this.el.offsetHeight;
@@ -284,31 +305,16 @@ var TouchRipple = function () {
 
       var oldX = e.offsetX;
       var oldY = e.offsetY;
-      var time = 1200;
-      console.log(width, height, oldX, oldY);
+      var time = this.options.time;
       // 执行动画
       var setX = _animationData2.default.set(turb.attributes.x, 'value', oldX, oldX - length / 2, time);
       var setY = _animationData2.default.set(turb.attributes.y, 'value', oldY, oldY - length / 2, time);
       var setW = _animationData2.default.set(turb.attributes.width, 'value', 0, length, time);
       var setH = _animationData2.default.set(turb.attributes.height, 'value', 0, length, time);
       var setS = _animationData2.default.set(feDisplacementMap.attributes.scale, 'value', 30, 0, time);
-      // 等待动画执行完毕
-      // await setX
-      // await setY
-      // await setW
-      // await setH
-      // setTimeout(() => {
-      //   console.log('执行完毕')
-      //   turb.attributes.x.value = oldX
-      //   turb.attributes.y.value = oldY
-      //   turb.attributes.width.value = 0
-      //   turb.attributes.height.value = 0
-      //   feDisplacementMap.attributes.scale.value = 20
-      //   this.showingRipple = false
-      // }, time)
+
       setH.then(function () {
         setTimeout(function () {
-          console.log('执行完毕');
           turb.attributes.x.value = oldX;
           turb.attributes.y.value = oldY;
           turb.attributes.width.value = 0;
@@ -318,6 +324,7 @@ var TouchRipple = function () {
             feComposite.setAttribute('in2', 'SourceGraphic');
           }
           _this.showingRipple = false;
+          _this.options.onEnd && _this.options.onEnd();
         }, 200);
       }).catch(function (err) {
         console.log(err);

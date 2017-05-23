@@ -9,19 +9,38 @@ const BOX_CLASSNAME = 'simulated-ripple-box'
 var ISPC = isPC()
 
 class TouchRipple {
-  constructor (el, hideSelf) {
-    this.initData(el, hideSelf) && this.init()
+  constructor (el, options) {
+    this.initData(el, options) && this.init()
   }
 
   /**
    * 检查和初始化传入参数
    */
-  initData (el, hideSelf) {
+  initData (el, options) {
     this.el = checkNode(el)
     if (!this.el) return
     this.filterId = `filter-ripple-${new Date() - 0}`
-    this.hideSelf = hideSelf
+    options = this.checkOptions(options)
+    this.options = options
     return true
+  }
+
+  /**
+   * 检查并且初始化options
+   */
+  checkOptions (options) {
+    if (typeof options === 'number') {
+      options = {time: options}
+    }
+    options = options || {}
+    let baseOptions = {
+      time: 1200,
+      hideSelf: false
+    }
+    for (let option in baseOptions) {
+      !options[option] && (options[option] = baseOptions[option])
+    }
+    return options
   }
 
   init () {
@@ -70,11 +89,10 @@ class TouchRipple {
     var turb = document.querySelector(`#${this.filterId} feImage`)
     var feDisplacementMap = document.querySelector(`#${this.filterId} feDisplacementMap`)
     var feComposite = document.querySelector(`#${this.filterId} .SourceGraphic`)
-    let hideSelf = this.hideSelf
+    let hideSelf = this.options.hideSelf
     if (hideSelf) {
       feComposite.setAttribute('in2', '')
     }
-    // console.log(feComposite.attributes.scale.value)
     if (!turb) return
     const width = this.el.offsetWidth
     const height = this.el.offsetHeight
@@ -83,31 +101,16 @@ class TouchRipple {
 
     let oldX = e.offsetX
     let oldY = e.offsetY
-    let time = 1200
-    console.log(width, height, oldX, oldY)
+    let time = this.options.time
     // 执行动画
     let setX = animationData.set(turb.attributes.x, 'value', oldX, oldX - length / 2, time)
     let setY = animationData.set(turb.attributes.y, 'value', oldY, oldY - length / 2, time)
     let setW = animationData.set(turb.attributes.width, 'value', 0, length, time)
     let setH = animationData.set(turb.attributes.height, 'value', 0, length, time)
     let setS = animationData.set(feDisplacementMap.attributes.scale, 'value', 30, 0, time)
-    // 等待动画执行完毕
-    // await setX
-    // await setY
-    // await setW
-    // await setH
-    // setTimeout(() => {
-    //   console.log('执行完毕')
-    //   turb.attributes.x.value = oldX
-    //   turb.attributes.y.value = oldY
-    //   turb.attributes.width.value = 0
-    //   turb.attributes.height.value = 0
-    //   feDisplacementMap.attributes.scale.value = 20
-    //   this.showingRipple = false
-    // }, time)
+
     setH.then(() => {
       setTimeout(() => {
-        console.log('执行完毕')
         turb.attributes.x.value = oldX
         turb.attributes.y.value = oldY
         turb.attributes.width.value = 0
@@ -117,6 +120,7 @@ class TouchRipple {
           feComposite.setAttribute('in2', 'SourceGraphic')
         }
         this.showingRipple = false
+        this.options.onEnd && this.options.onEnd()
       }, 200)
     }).catch((err) => {
       console.log(err)

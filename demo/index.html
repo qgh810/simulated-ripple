@@ -87,6 +87,10 @@
 
       new SimulatedRipple('.demo-btn', {
         hideSelf: true,
+        time: 1000,
+        onEnd: function () {
+          console.log('涟漪动画结束')
+        }
       })
 
       var addrBtn = document.getElementById('addr')
