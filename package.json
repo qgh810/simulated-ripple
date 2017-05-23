@@ -1,7 +1,7 @@
 {
   "name": "simulated-ripple",
-  "version": "0.0.2",
-  "description": "touch ripple",
+  "version": "0.0.3",
+  "description": "simulated ripple",
   "main": "dist/simulated-ripple.js",
   "scripts": {
     "dev": "webpack --watch",
@@ -14,7 +14,7 @@
   "keywords": [
     "ripple",
     "ripples",
-    "touch-ripple"
+    "simulated-ripple"
   ],
   "author": "qiuguohui",
   "license": "ISC",
