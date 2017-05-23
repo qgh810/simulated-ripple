@@ -207,10 +207,10 @@ var BOX_CLASSNAME = 'simulated-ripple-box';
 var ISPC = (0, _isPC2.default)();
 
 var TouchRipple = function () {
-  function TouchRipple(el, options) {
+  function TouchRipple(el, hideSelf) {
     _classCallCheck(this, TouchRipple);
 
-    this.initData(el, options) && this.init();
+    this.initData(el, hideSelf) && this.init();
   }
 
   /**
@@ -220,17 +220,18 @@ var TouchRipple = function () {
 
   _createClass(TouchRipple, [{
     key: 'initData',
-    value: function initData(el) {
+    value: function initData(el, hideSelf) {
       this.el = (0, _check.checkNode)(el);
       if (!this.el) return;
       this.filterId = 'filter-ripple-' + (new Date() - 0);
+      this.hideSelf = hideSelf;
       return true;
     }
   }, {
     key: 'init',
     value: function init() {
-      this.createSvg();
       this.el.style.filter = 'url(#' + this.filterId + ')';
+      this.createSvg();
       this.addClickEvent();
     }
   }, {
@@ -246,14 +247,12 @@ var TouchRipple = function () {
           offsetWidth = _el2.offsetWidth,
           offsetHeight = _el2.offsetHeight;
 
-      this.svg = document.createElement('svg');
+      this.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
       var svg = this.svg;
-      svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
       svg.setAttribute('version', '1.1');
       svg.setAttribute('class', 'svg-filter');
       svg.setAttribute('style', ' position: absolute;\n                                left: ' + offsetLeft + 'px; \n                                top: ' + offsetTop + 'px; \n                                z-index: -1;\n                                opacity: 0;\n                                width: ' + offsetWidth + 'px;\n                                height: ' + offsetHeight + 'px');
-      svg.innerHTML += '\n    <defs>\n      <filter id="' + this.filterId + '">\n        <feImage xlink:href="' + _ripple.base64Ripple + '" x="30" y="20" width="200" height="200" result="ripple"></feImage>\n        <feDisplacementMap xChannelSelector="R" yChannelSelector="G" color-interpolation-filters="sRGB" in="SourceGraphic" in2="ripple" scale="20" result="dm" />\n        <feComposite operator="in" in2="ripple"></feComposite>\n        <feComposite in2="SourceGraphic"></feComposite>\n      </filter>\n    </defs>\n    ';
-
+      svg.innerHTML = '\n    <defs>\n      <filter id="' + this.filterId + '">\n        <feImage href="' + _ripple.base64Ripple + '" x="30" y="20" width="0" height="0" result="ripple"></feImage>\n        <feDisplacementMap xChannelSelector="R" yChannelSelector="G" color-interpolation-filters="sRGB" in="SourceGraphic" in2="ripple" scale="20" result="dm" />\n        <feComposite operator="in" in2="ripple"></feComposite>\n        <feComposite class="SourceGraphic" in2="SourceGraphic"></feComposite>\n      </filter>\n    </defs>\n    ';
       el.parentNode.insertBefore(svg, el);
     }
   }, {
@@ -270,32 +269,59 @@ var TouchRipple = function () {
       this.showingRipple = true;
 
       var turb = document.querySelector('#' + this.filterId + ' feImage');
+      var feDisplacementMap = document.querySelector('#' + this.filterId + ' feDisplacementMap');
+      var feComposite = document.querySelector('#' + this.filterId + ' .SourceGraphic');
+      var hideSelf = this.hideSelf;
+      if (hideSelf) {
+        feComposite.setAttribute('in2', '');
+      }
+      // console.log(feComposite.attributes.scale.value)
       if (!turb) return;
       var width = this.el.offsetWidth;
       var height = this.el.offsetHeight;
+      var length = width > height ? width : height;
+      length = length * 3;
 
       var oldX = e.offsetX;
       var oldY = e.offsetY;
       var time = 1200;
       console.log(width, height, oldX, oldY);
       // 执行动画
-      var setX = _animationData2.default.set(turb.attributes.x, 'value', oldX, oldX - width / 2, time);
-      var setY = _animationData2.default.set(turb.attributes.y, 'value', oldY, oldY - height / 2, time);
-      var setW = _animationData2.default.set(turb.attributes.width, 'value', 0, width, time);
-      var setH = _animationData2.default.set(turb.attributes.height, 'value', 0, height, time);
+      var setX = _animationData2.default.set(turb.attributes.x, 'value', oldX, oldX - length / 2, time);
+      var setY = _animationData2.default.set(turb.attributes.y, 'value', oldY, oldY - length / 2, time);
+      var setW = _animationData2.default.set(turb.attributes.width, 'value', 0, length, time);
+      var setH = _animationData2.default.set(turb.attributes.height, 'value', 0, length, time);
+      var setS = _animationData2.default.set(feDisplacementMap.attributes.scale, 'value', 30, 0, time);
       // 等待动画执行完毕
       // await setX
       // await setY
       // await setW
       // await setH
-      setTimeout(function () {
-        console.log('执行完毕');
-        turb.attributes.x.value = oldX;
-        turb.attributes.y.value = oldY;
-        turb.attributes.width.value = 0;
-        turb.attributes.height.value = 0;
-        _this.showingRipple = false;
-      }, time + 500);
+      // setTimeout(() => {
+      //   console.log('执行完毕')
+      //   turb.attributes.x.value = oldX
+      //   turb.attributes.y.value = oldY
+      //   turb.attributes.width.value = 0
+      //   turb.attributes.height.value = 0
+      //   feDisplacementMap.attributes.scale.value = 20
+      //   this.showingRipple = false
+      // }, time)
+      setH.then(function () {
+        setTimeout(function () {
+          console.log('执行完毕');
+          turb.attributes.x.value = oldX;
+          turb.attributes.y.value = oldY;
+          turb.attributes.width.value = 0;
+          turb.attributes.height.value = 0;
+          feDisplacementMap.attributes.scale.value = 0;
+          if (hideSelf) {
+            feComposite.setAttribute('in2', 'SourceGraphic');
+          }
+          _this.showingRipple = false;
+        }, 200);
+      }).catch(function (err) {
+        console.log(err);
+      });
     }
   }]);
 
