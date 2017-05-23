@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>涟漪效果</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <script type="text/javascript" src="../dist/touch-ripple.js"></script>
+
+    <style>
+      html, body {
+        width: 100%;
+        height: 100%;
+        padding: 0;
+        margin: 0;
+        overflow: hidden;
+      }
+      .app-root {
+        width: 100%;
+        max-width: 560px;
+        margin: 0 auto;
+        height: 100%;
+        padding: 20px;
+        box-sizing: border-box;
+        background: #fff;
+        overflow: auto;
+      }
+      .app-root {
+        width: 100%;
+      }
+      .header {
+        width: 100%;
+        text-align: center;
+        margin-bottom: 50px;
+        font-size: 14px;
+        color: #999;
+      }
+      .header h1 {
+        color: #333;
+        font-size: 20px;
+      }
+
+      .demo-box {
+        width: 100%;
+        height: auto;
+        text-align: center;
+      }
+      .demo-btn {
+        display: inline-block;
+        margin: 20px auto;
+        background: green;
+        padding: 25px 80px;
+        color: #fff;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-root">
+      <header class="header">
+        <h1>touch-ripple 触摸涟漪反馈效果</h1>
+        <div class="addr">
+          <span>说明文档: </span><a id="addr" href="">https://github.com/qgh810/touch-ripple</a>
+        </div>
+      </header>
+
+
+      <div class="demo-box">
+        <div class="demo-btn">
+          <span>Click for Ripple</span>
+        </div>
+      </div>
+
+
+    </div>
+  </body>
+  <script>
+    window.onload = function () {
+      new TouchRipple('.demo-btn', {
+        color: 'rgba(0,0,0,0.3)',
+        time: 500,
+        size: null
+      })
+
+      var addrBtn = document.getElementById('addr')
+      addrBtn.addEventListener('click', function (e) {
+        e.preventDefault()
+        window.open('https://github.com/qgh810/touch-ripple')
+      }, false)
+
+    }
+  </script>
+</html>
