@@ -1,8 +1,10 @@
 import { checkNode } from './utils/check'
 import { showWarn } from './utils/log'
 import isPC from './utils/isPC'
+import { base64Ripple } from './assets/images/ripple'
+// import animationData from './utils/animation-data'
 
-const MARK_CLASSNAME = 'q-touch-ripple-mark'
+const BOX_CLASSNAME = 'simulated-ripple-box'
 var ISPC = isPC()
 
 class TouchRipple {
@@ -13,139 +15,48 @@ class TouchRipple {
   /**
    * 检查和初始化传入参数
    */
-  initData (el, options) {
+  initData (el) {
     this.el = checkNode(el)
     if (!this.el) return
-    options = this.checkOptions(options)
-    this.options = options
+    this.filterId = `filter-ripple-${new Date() - 0}`
     return true
   }
 
-  /**
-   * 检查并且初始化options
-   */
-  checkOptions (options) {
-    if (typeof options === 'string') {
-      options = {color: options}
-    }
-    options = options || {}
-    let baseOptions = {
-      color: 'rgba(0,0,0,0.2)',
-      time: 500,
-      size: 0
-    }
-    for (let option in baseOptions) {
-      !options[option] && (options[option] = baseOptions[option])
-    }
-    return options
-  }
-
   init () {
-    this.setElStyle()
-    this.addEventListener()
+    this.createSvg()
+    this.addClickEvent()
   }
 
-  setElStyle () {
-    this.el.style.position = this.el.style.position || 'relative'
-    this.el.style.webkitTapHighlightColor = 'rgba(0,0,0,0)'
+  createSvg () {
+    // 创建svg
+    let { offsetTop, offsetLeft } = this.el
+    let el = this.el    
+    this.svg = document.createElement('svg')
+    let svg = this.svg
+    svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    svg.setAttribute('version', '1.1')
+    svg.setAttribute('class', 'svg-filter')
+    svg.setAttribute('style', ` position: absolute;
+                                left: ${offsetLeft}px; 
+                                top: ${offsetTop}px; 
+                                z-index: -1;
+                                opacity: 0;`)
+    svg.innerHTML += `
+    <defs>
+      <filter id="${this.filterId}">
+        <feImage xlink:href="${base64Ripple}" x="30" y="20" width="0" height="0" result="ripple"></feImage>
+        <feDisplacementMap xChannelSelector="R" yChannelSelector="G" color-interpolation-filters="sRGB" in="SourceGraphic" in2="ripple" scale="20" result="dm" />
+        <feComposite operator="in" in2="ripple"></feComposite>
+        <feComposite in2="SourceGraphic"></feComposite>
+      </filter>
+    </defs>
+    `
+
+    el.parentNode.insertBefore(svg,el)
   }
 
-  addEventListener () {
-    if (ISPC) {
-      this.el.addEventListener('mousedown', this.onMouseDown.bind(this))
-      this.el.addEventListener('mouseup', this.onMouseUp.bind(this))
-    } else {
-      this.el.addEventListener('touchstart', this.onMouseDown.bind(this))
-      this.el.addEventListener('touchend', this.onMouseUp.bind(this))
-    }
-  }
-
-  onMouseDown (e) {
-    e.preventDefault()
-    this.target = e.target
-    let { pageX, pageY } = ISPC ? e : e.touches[0]
-    this.mouseDownPosition = { pageX, pageY }
-    this.showRipples()
-  }
-
-  showRipples () {
-    let mark = document.createElement('div')
-    mark.className = MARK_CLASSNAME
-    this.setMarkStyle(mark)
-    let ripples = document.createElement('div')
-    this.setRipplesStyle(ripples, mark)
-    mark.appendChild(ripples)
-    this.el.appendChild(mark)
-  }
-
-  setMarkStyle (element) {
-    HTMLElement.prototype.__defineGetter__('currentStyle', function () {
-      return this.ownerDocument.defaultView.getComputedStyle(this, null);
-    })
-    let style = element.style
-    let {width, height } = this.el.getBoundingClientRect()
-    width -= parseInt(this.el.currentStyle.borderLeftWidth)
-    width -= parseInt(this.el.currentStyle.borderRightWidth)
-    height -= parseInt(this.el.currentStyle.borderTopWidth)
-    height -= parseInt(this.el.currentStyle.borderBottomWidth)
-    style.position = 'absolute'
-    style.left = '0'
-    style.top = '0'
-    style.width = width + 'px'
-    style.height = height + 'px'
-    style.borderRadius = this.el.currentStyle.borderRadius
-    style.cursor = this.target.currentStyle.cursor
-    style.overflow = 'hidden'
-    style.zIndex = '20'
-
-    // style.background = 'rgba(255,0,0,0.5)'
-  }
-
-  setRipplesStyle (ripples, mark) {
-    let style = ripples.style
-    let { width, height, left, top } = this.el.getBoundingClientRect()
-    let length = parseInt(this.options.size) || Math.max(width, height)
-    style.position = 'absolute'
-    let offsetLeft = this.mouseDownPosition.pageX - left - length / 2 + 'px'
-    let offsetTop = this.mouseDownPosition.pageY - top - length / 2 + 'px'
-    style.left = offsetLeft
-    style.top = offsetTop
-    style.width = style.height = length + 'px'
-    style.background = this.options.color
-    style.borderRadius = '50%'
-    style.borderRadius = '50%'
-    style.transition = `all ease ${this.options.time / 1000}s`
-
-    style.transform = 'scale(0)'
-    style.opacity = 1
-
-    setTimeout(() => {
-      style.transform = 'scale(1)'
-      style.opacity = 0
-      setTimeout(() => {
-        this.onAnimationEnd(mark)
-      }, this.options.time)
-    }, 0)
-  }
-
-  onAnimationEnd (mark) {
-    this.el.removeChild(mark)
-  }
-
-  onMouseUp () {
-    this.el !== this.target && this.dispatchEvent('mouseup', this.target)
-  }
-
-  dispatchEvent (eventName, el) {
-    try {
-      //非IE
-      var evObj = document.createEvent('MouseEvents');
-      evObj.initEvent(eventName, true, false);
-      el.dispatchEvent(evObj);
-    } catch(e) {
-      //IE
-      el.fireEvent(`on${eventName}`);
-    }
+  addClickEvent () {
+    // this.el.addEventListener('mousedown', this.onShowRipple.bind(this))
   }
 }
 
