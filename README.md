@@ -1,11 +1,11 @@
 ## simulited-ripple
 
-触摸涟漪反馈效果, 存在比较严重的兼容性问题, 自己做着玩的, 没有可以做兼容, 供大家欣赏<br>
+触摸涟漪反馈效果, 可能存在兼容性问题, 自己做着玩的, 供大家欣赏<br>
 
 [查看DEMO](https://qiuguohui.coding.me/demo/simulited-ripple/index.html)<br>
 
 
-<img src="https://coding.net/u/qiuguohui/p/qiuguohui.coding.me/git/raw/master/demo/simulited-ripple/assets/demo.png" width="250" />
+<img src="https://github.com/qgh810/qgh810.github.io/blob/master/demo/simulited-ripple/assets/demo.png?raw=true" width="250" />
 
 ### 安装方法
 -  方式一
