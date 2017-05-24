@@ -1,6 +1,6 @@
 ## simulated-ripple
 
-触摸涟漪反馈效果, 可能存在兼容性问题, 自己做着玩的, 供大家欣赏<br>
+触摸涟漪反馈效果, 可能存在兼容性问题, 供大家欣赏<br>
 
 [查看DEMO](https://qiuguohui.coding.me/demo/simulated-ripple/index.html)<br>
 
@@ -17,7 +17,7 @@ npm install simulated-ripple --save
 
 ```bash
 下载项目中的dist/simulated-ripple.min.js, 然后用script标签插入到你的项目中, 如下
-这种方式可以通过window.simulatedRipple访问
+这种方式可以通过window.SimulatedRipple访问
 ```
 
 ```html
@@ -29,13 +29,13 @@ npm install simulated-ripple --save
 ### 使用方法
 
 ```js
-import simulatedRipple from 'simulated-ripple'
+import SimulatedRipple from 'simulated-ripple'
 
 // 最简单的使用方法
-new simulatedRipple('.btn')
+new SimulatedRipple('.btn')
 
 // 更多配置
-new simulatedRipple('.btn', {
+new SimulatedRipple('.btn', {
   time: 1200, // 设置涟漪时间
   hideSelf: true // 设置动画过程是否将原图隐藏
 })
